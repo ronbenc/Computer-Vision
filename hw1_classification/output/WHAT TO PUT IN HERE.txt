@@ -1,0 +1,4 @@
+ This folder is used to submit all the output files you are requested
+throughout the assignment. Use this folder if there are visual results that are
+not in the report or for output videos/files which are not required to run the
+code.
