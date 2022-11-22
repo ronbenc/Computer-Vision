@@ -106,61 +106,6 @@ class ResidualBlock(nn.Module):
         out = torch.relu(out)
         return out
 
-    
-class RonDoronNet(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.conv_layer = nn.Sequential(
-            # nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3, padding=1),
-            # nn.MaxPool2d(kernel_size=2, stride=2),
-
-            ResidualBlock(3, [64, 64], 3, batchnorm=True, dropout=0.3),
-            # ResidualBlock(64, [64, 64], 3, batchnorm=True, dropout=0.3),
-            ResidualBlock(64, [64, 64], 3, batchnorm=True, dropout=0.3),
-
-            nn.MaxPool2d(kernel_size=2, stride=2),
-
-
-            ResidualBlock(64, [128, 128], 3, batchnorm=True, dropout=0.3),
-            # ResidualBlock(128, [128, 128], 3, batchnorm=True, dropout=0.3),
-            ResidualBlock(128, [128, 128], 3, batchnorm=True, dropout=0.3),
-
-            nn.MaxPool2d(kernel_size=2, stride=2),
-
-            ResidualBlock(128, [256, 256], 3, batchnorm=True, dropout=0.3),
-            # ResidualBlock(256, [256, 256], 3, batchnorm=True, dropout=0.3),
-            ResidualBlock(256, [256, 256], 3, batchnorm=True, dropout=0.3),
-
-
-            ResidualBlock(256, [512, 512], 3, batchnorm=True, dropout=0.3),
-            # ResidualBlock(512, [512, 512], 3, batchnorm=True, dropout=0.3),
-            ResidualBlock(512, [512, 512], 3, batchnorm=True, dropout=0.3),
-
-            nn.MaxPool2d(kernel_size=2, stride=2),
-        
-            ResidualBlock(512, [1024, 1024], 3, batchnorm=True, dropout=0.3),
-            # ResidualBlock(1024, [1024, 1024], 3, batchnorm=True, dropout=0.3),
-            ResidualBlock(1024, [1024, 1024], 3, batchnorm=True, dropout=0.3)
-        )
-
-        y = self.conv_layer(torch.zeros((1, 3, 32, 32)))
-        n_features = torch.numel(y)
-        print(n_features)
-
-        self.fc_layer = nn.Sequential(
-        nn.Dropout(p=0.1),
-        nn.Linear(n_features, 512), 
-        nn.ReLU(inplace=True),
-        nn.Linear(512, 10) 
-        )
-
-
-    def forward(self, x):
-        x = self.conv_layer(x)
-        x = x.view(x.size(0), -1)
-        x = self.fc_layer(x)
-        return x
-
 class SuperSvhnCNN(nn.Module):
     """CNN for the SVHN Datset"""
     
@@ -174,34 +119,35 @@ class SuperSvhnCNN(nn.Module):
             # How many weights?
             nn.BatchNorm2d(16),
             nn.PReLU(16),
-            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, padding=1
-            ),
+            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, padding=1),
             nn.PReLU(32),
             nn.MaxPool2d(kernel_size=2, stride=2),
             # Conv Layer block 2
-            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, padding=1
-            ),
+            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, padding=1),
             nn.BatchNorm2d(64),
-            nn.PReLU(),
-            nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, padding=1
-            ),
+            nn.PReLU(64),
+            nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, padding=1),
             nn.PReLU(64),
             nn.MaxPool2d(kernel_size=2, stride=2),
             nn.Dropout2d(p=0.05), # <- Why is this here?
             # Modified Conv Layer block 3
-            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, padding=1
-            ),
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, padding=1),
             nn.PReLU(128),
-            nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, padding=1),nn.PReLU(128),
-            # ResidualBlock(128, [128, 256], kernel_size=3, batchnorm=True, dropout=0.1),
-            # ResidualBlock(256, [256, 256], kernel_size=3, batchnorm=True)
+            nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, padding=1),
+            nn.PReLU(128),
+            ResidualBlock(128, [128, 256], kernel_size=3, batchnorm=True, dropout=0.1),
+            ResidualBlock(256, [256, 256], kernel_size=3, batchnorm=True)
 
             # As we go deeper - use more channels!
             )
         self.fc_layer = nn.Sequential(
-        nn.Dropout(p=0.1),
+        nn.Dropout(p=0.3),
+        nn.Linear(8192*2, 8192),
+        nn.ReLU(inplace=True),
+        nn.Dropout(p=0.3),
         nn.Linear(8192, 512), # <- How do we know it's 8192? Why 512 later?
-        nn.PReLU(512),
+        nn.ReLU(inplace=True),
+        nn.Dropout(p=0.3),
         nn.Linear(512, 10) # <- Why 10 here?
         )
         
